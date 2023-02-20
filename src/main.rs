@@ -1,5 +1,6 @@
 use tcod::colors::*;
 use tcod::console::*;
+use std::cmp;
 
 const SCREEN_WIDTH: i32 = 80;
 const SCREEN_HEIGHT: i32 = 50;
@@ -14,7 +15,7 @@ const COLOR_DARK_GROUND: Color = Color {
     b: 150,
 };
 
-const LIMIT_FPS: i32 = 60;
+const LIMIT_FPS: i32 = 30;
 
 type Map = Vec<Vec<Tile>>;
 
@@ -73,18 +74,58 @@ impl Tile {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
+struct Rect {
+    x1: i32,
+    y1: i32,
+    x2: i32,
+    y2: i32,
+}
+
+impl Rect {
+    pub fn new(x: i32, y: i32, w: i32, h: i32) -> Self {
+        Rect {
+            x1: x,
+            y1: y,
+            x2: x + w,
+            y2: y + h,
+        }
+    }
+}
+
+fn create_room(room: Rect, map: &mut Map) {
+    for x in (room.x1 + 1)..room.x2 {
+        for y in (room.y1 + 1)..room.y2 {
+            map[x as usize][y as usize] = Tile::empty();
+        }
+    }
+}
+
+fn create_h_tunnel(x1: i32, x2: i32, y: i32, map: &mut Map) {
+    for x in cmp::min(x1, x2)..(cmp::max(x1, x2) + 1) {
+        map[x as usize][y as usize] = Tile::empty();
+    }
+}
+
+fn create_v_tunnel(y1: i32, y2: i32, x: i32, map: &mut Map) {
+    for y in cmp::min(y1, y2)..(cmp::max(y1, y2) + 1) {
+        map[x as usize][y as usize] = Tile::empty();
+    }
+}
+
 struct Game {
     map: Map,
 }
 
 fn make_map() -> Map {
-    let mut map = vec![vec![Tile::empty(); MAP_HEIGHT as usize]; MAP_WIDTH as usize];
+    let mut map = vec![vec![Tile::wall(); MAP_HEIGHT as usize]; MAP_WIDTH as usize];
 
-    map[30][22] = Tile::wall();
-    map[50][22] = Tile::wall();
-    map[50][11] = Tile::wall();
-    map[10][19] = Tile::wall();
-    map[40][1] = Tile::wall();
+    // create two rooms
+    let room1 = Rect::new(20, 15, 10, 15);
+    let room2 = Rect::new(50, 15, 10, 15);
+    create_room(room1, &mut map);
+    create_room(room2, &mut map);
+    create_h_tunnel(25, 55, 23, &mut map);
 
     map
 }
@@ -99,18 +140,15 @@ fn main() {
     .title("Rust/libtcod tutorial")
     .init();
 
-    let con = Offscreen::new(SCREEN_WIDTH, SCREEN_HEIGHT);
+    let con = Offscreen::new(MAP_WIDTH, MAP_HEIGHT);
 
     let mut tcod = Tcod { root, con };
 
     // create object representing the player
-    let player = Object::new(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, '@', WHITE);
-
-    // create an NPC
-    let npc = Object::new(SCREEN_WIDTH / 2 - 5, SCREEN_HEIGHT / 2, '@', YELLOW);
+    let player = Object::new(25, 23, '0', WHITE);
 
     // the list of objects with those two
-    let mut objects = [player, npc];
+    let mut objects = [player];
 
     let game = Game {
         map: make_map(),
@@ -154,10 +192,6 @@ fn handle_keys(tcod: &mut Tcod, game: &Game, player: &mut Object) -> bool {
 }
 
 fn render_all(tcod: &mut Tcod, game: &Game, objects: &[Object]) {
-    for object in objects {
-        object.draw(&mut tcod.con);
-    }
-
     for y in 0..MAP_HEIGHT {
         for x in 0..MAP_WIDTH {
             let wall = game.map[x as usize][y as usize].block_sight;
@@ -169,6 +203,10 @@ fn render_all(tcod: &mut Tcod, game: &Game, objects: &[Object]) {
                     .set_char_background(x, y, COLOR_DARK_GROUND, BackgroundFlag::Set);
             }
         }
+    }
+
+    for object in objects {
+        object.draw(&mut tcod.con);
     }
 
     blit(
