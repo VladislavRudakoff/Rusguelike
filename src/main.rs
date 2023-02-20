@@ -145,11 +145,11 @@ fn make_map(player: &mut Object) -> Map {
 
     for _ in 0..MAX_ROOMS {
         // random width and height
-        let w = rand::thread_rng().gen_range(ROOM_MIN_SIZE, ROOM_MAX_SIZE + 1);
-        let h = rand::thread_rng().gen_range(ROOM_MIN_SIZE, ROOM_MAX_SIZE + 1);
+        let w = rand::thread_rng().gen_range(ROOM_MIN_SIZE..ROOM_MAX_SIZE + 1);
+        let h = rand::thread_rng().gen_range(ROOM_MIN_SIZE..ROOM_MAX_SIZE + 1);
         // random position without going out of the boundaries of the map
-        let x = rand::thread_rng().gen_range(0, MAP_WIDTH - w);
-        let y = rand::thread_rng().gen_range(0, MAP_HEIGHT - h);
+        let x = rand::thread_rng().gen_range(0..MAP_WIDTH - w);
+        let y = rand::thread_rng().gen_range(0..MAP_HEIGHT - h);
 
         let new_room = Rect::new(x, y, w, h);
 
