@@ -4,5 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-tcod = "0.15"
+tcod = { git = "https://github.com/tomassedovic/tcod-rs.git ", features = ["serialization"] }
 rand = "0.8.5"
+
+[dependencies.tcod-sys]
+git = "https://github.com/tomassedovic/tcod-rs.git "
+features = ["dynlib"]

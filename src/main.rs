@@ -1,7 +1,5 @@
 use std::cmp;
 
-use std::env;
-
 use rand::Rng;
 use tcod::colors::*;
 use tcod::console::*;
@@ -695,7 +693,6 @@ impl Messages {
 }
 
 fn main() {
-    env::set_var("RUST_BACKTRACE", "1");
     tcod::system::set_fps(LIMIT_FPS);
 
     let root = Root::initializer()
