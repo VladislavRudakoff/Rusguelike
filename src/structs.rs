@@ -174,6 +174,16 @@ impl Object {
             );
         }
     }
+
+    /// heal by the given amount, without going over the maximum
+    pub fn heal(&mut self, amount: i32) {
+        if let Some(ref mut fighter) = self.fighter {
+            fighter.hp += amount;
+            if fighter.hp > fighter.max_hp {
+                fighter.hp = fighter.max_hp;
+            }
+        }
+    }
 }
 
 // combat-related properties and methods (monster, player, NPC).
@@ -238,4 +248,9 @@ impl DeathCallback {
         };
         callback(object, game);
     }
+}
+
+pub enum UseResult {
+    UsedUp,
+    Cancelled,
 }

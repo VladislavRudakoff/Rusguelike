@@ -2,7 +2,7 @@ use std::cmp;
 
 use tcod::colors::*;
 
-use crate::structs::{Game, Object, Tcod, Tile};
+use crate::structs::{Game, Object, Tcod, Tile, UseResult, Item};
 use crate::constants::*;
 use crate::map::is_blocked;
 
@@ -24,6 +24,51 @@ pub fn pick_item_up(object_id: usize, game: &mut Game, objects: &mut Vec<Object>
             .add(format!("You picked up a {}!", item.name), GREEN);
         game.inventory.push(item);
     }
+}
+
+pub fn use_item(inventory_id: usize, tcod: &mut Tcod, game: &mut Game, objects: &mut [Object]) {
+    use Item::*;
+    // just call the "use_function" if it is defined
+    if let Some(item) = game.inventory[inventory_id].item {
+        let on_use = match item {
+            Heal => cast_heal,
+        };
+        match on_use(inventory_id, tcod, game, objects) {
+            UseResult::UsedUp => {
+                // destroy after use, unless it was cancelled for some reason
+                game.inventory.remove(inventory_id);
+            }
+            UseResult::Cancelled => {
+                game.messages.add("Cancelled", WHITE);
+            }
+        }
+    } else {
+        game.messages.add(
+            format!("The {} cannot be used.", game.inventory[inventory_id].name),
+            WHITE,
+        );
+    }
+}
+
+fn cast_heal(
+    _inventory_id: usize,
+    _tcod: &mut Tcod,
+    game: &mut Game,
+    objects: &mut [Object],
+) -> UseResult {
+    use UseResult::*;
+    // heal the player
+    if let Some(fighter) = objects[PLAYER].fighter {
+        if fighter.hp == fighter.max_hp {
+            game.messages.add("You are already at full health.", RED);
+            return Cancelled;
+        }
+        game.messages
+            .add("Your wounds start to feel better!", LIGHT_VIOLET);
+        objects[PLAYER].heal(HEAL_AMOUNT);
+        return UsedUp;
+    }
+    Cancelled
 }
 
 pub fn ai_take_turn(monster_id: usize, tcod: &Tcod, game: &mut Game, objects: &mut [Object]) {

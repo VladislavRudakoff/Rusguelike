@@ -113,10 +113,10 @@ pub fn place_objects(room: Rect, map: &Map, objects: &mut Vec<Object>) {
                 // create an orc
                 let mut orc = Object::new(x, y, 'o', "orc", DESATURATED_GREEN, true);
                 orc.fighter = Some(Fighter {
-                    max_hp: 50,
-                    hp: 50,
+                    max_hp: 40,
+                    hp: 40,
                     defense: 0,
-                    power: 10,
+                    power: 8,
                     on_death: DeathCallback::Monster
                 });
                 orc.ai = Some(Ai::Basic);
@@ -124,10 +124,10 @@ pub fn place_objects(room: Rect, map: &Map, objects: &mut Vec<Object>) {
             } else {
                 let mut troll = Object::new(x, y, 'T', "troll", DARKER_GREEN, true);
                 troll.fighter = Some(Fighter {
-                    max_hp: 200, 
-                    hp: 200, 
-                    defense: 10, 
-                    power: 30,
+                    max_hp: 150, 
+                    hp: 150, 
+                    defense: 5, 
+                    power: 15,
                     on_death: DeathCallback::Monster
                 });
                 troll.ai = Some(Ai::Basic);

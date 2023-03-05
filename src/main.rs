@@ -2,6 +2,7 @@ use constants::*;
 use structs::*;
 use map::*;
 use actions::*;
+use interface::inventory_menu;
 use tcod::colors::*;
 use tcod::console::*;
 use tcod::input::{self, Event, Key};
@@ -51,6 +52,18 @@ fn handle_keys(tcod: &mut Tcod, game: &mut Game, objects: &mut Vec<Object>) -> P
             }
             DidntTakeTurn
         }
+        (Key { code: Text, .. }, "i", true) => {
+            // show the inventory: if an item is selected, use it
+            let inventory_index = inventory_menu(
+                &game.inventory,
+                "Press the key next to an item to use it, or any other to cancel.\n",
+                &mut tcod.root,
+            );
+            if let Some(inventory_index) = inventory_index {
+                use_item(inventory_index, tcod, game, objects);
+            }
+            DidntTakeTurn
+        }
 
         _ => DidntTakeTurn,
     }
@@ -78,7 +91,7 @@ fn main() {
     // create object representing the player
     let mut player = Object::new(0, 0, '@', "player", DARKER_BLUE, true);
     player.alive = true;
-    player.fighter = Some(Fighter { max_hp: 100, hp: 100, defense: 15, power: 10, on_death: DeathCallback::Player });
+    player.fighter = Some(Fighter { max_hp: 100, hp: 100, defense: 5, power: 10, on_death: DeathCallback::Player });
 
     // the list of objects with those two
     let mut objects = vec![player];
