@@ -1,10 +1,12 @@
 use tcod::console::*;
 use tcod::colors::*;
-use tcod::input::Mouse;
+use tcod::input;
+use tcod::input::{Event, Mouse};
 use tcod::map::Map as FovMap;
 
-use crate::constants::{SCREEN_HEIGHT, SCREEN_WIDTH, INVENTORY_WIDTH};
-use crate::structs::Object;
+use crate::constants::*;
+use crate::map::render_all;
+use crate::structs::{Object, Tcod, Game};
 
 pub fn render_bar(
     panel: &mut Offscreen,
@@ -130,5 +132,42 @@ pub fn inventory_menu(inventory: &[Object], header: &str, root: &mut Root) -> Op
         inventory_index
     } else {
         None
+    }
+}
+
+/// return the position of a tile left-clicked in player's FOV (optionally in a
+/// range), or (None,None) if right-clicked.
+pub fn target_tile(
+    tcod: &mut Tcod,
+    game: &mut Game,
+    objects: &[Object],
+    max_range: Option<f32>,
+) -> Option<(i32, i32)> {
+    use tcod::input::KeyCode::Escape;
+
+    loop {
+        // render the screen. this erases the inventory and shows the names of
+        // objects under the mouse.
+        tcod.root.flush();
+        let event = input::check_for_event(input::KEY_PRESS | input::MOUSE).map(|e| e.1);
+        match event {
+            Some(Event::Mouse(m)) => tcod.mouse = m,
+            Some(Event::Key(k)) => tcod.key = k,
+            None => tcod.key = Default::default(),
+        }
+        render_all(tcod, game, objects, false);
+
+        let (x, y) = (tcod.mouse.cx as i32, tcod.mouse.cy as i32);
+
+        // accept the target if the player clicked in FOV, and in case a range
+        // is specified, if it's in that range
+        let in_fov = (x < MAP_WIDTH) && (y < MAP_HEIGHT) && tcod.fov.is_in_fov(x, y);
+        let in_range = max_range.map_or(true, |range| objects[PLAYER].distance(x, y) <= range);
+        if tcod.mouse.lbutton_pressed && in_fov && in_range {
+            return Some((x, y));
+        }
+        if tcod.mouse.rbutton_pressed || tcod.key.code == Escape {
+            return None; // cancel if the player right-clicked or pressed Escape
+        }
     }
 }

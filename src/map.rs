@@ -149,12 +149,55 @@ pub fn place_objects(room: Rect, map: &Map, objects: &mut Vec<Object>) {
 
         // only place it if the tile is not blocked
         if !is_blocked(x, y, map, objects) {
-            // create a healing potion
-            let mut object = Object::new(x, y, '!', "healing potion", VIOLET, false);
-            object.item = Some(Item::Heal);
-            objects.push(object);
+            let dice = rand::random::<f32>();
+            let item = if dice < 0.7 {
+                // create a healing potion (70% chance)
+                let mut object = Object::new(x, y, '!', "healing potion", VIOLET, false);
+                object.item = Some(Item::Heal);
+                object
+            } else if dice < 0.7 + 0.1 {
+                // create a lightning bolt scroll (10% chance)
+                let mut object =
+                    Object::new(x, y, '#', "scroll of lightning bolt", LIGHT_YELLOW, false);
+                object.item = Some(Item::Lightning);
+                object
+            } else if dice < 0.7 + 0.1 + 0.1 {
+                // create a fireball scroll (10% chance)
+                let mut object = Object::new(x, y, '#', "scroll of fireball", LIGHT_YELLOW, false);
+                object.item = Some(Item::Fireball);
+                object
+            } else {
+                // create a confuse scroll (10% chance)
+                let mut object = Object::new(x, y, '#', "scroll of confusion", LIGHT_YELLOW, false);
+                object.item = Some(Item::Confuse);
+                object
+            };
+            objects.push(item);
         }
     }
+}
+
+/// find closest enemy, up to a maximum range, and in the player's FOV
+pub fn closest_monster(tcod: &Tcod, objects: &[Object], max_range: i32) -> Option<usize> {
+    let mut closest_enemy = None;
+    let mut closest_dist = (max_range + 1) as f32; // start with (slightly more than) maximum range
+
+    for (id, object) in objects.iter().enumerate() {
+        if (id != PLAYER)
+            && object.fighter.is_some()
+            && object.ai.is_some()
+            && tcod.fov.is_in_fov(object.x, object.y)
+        {
+            // calculate distance between this object and the player
+            let dist = objects[PLAYER].distance_to(object);
+            if dist < closest_dist {
+                // it's closer, so remember it
+                closest_enemy = Some(id);
+                closest_dist = dist;
+            }
+        }
+    }
+    closest_enemy
 }
 
 pub fn render_all(tcod: &mut Tcod, game: &mut Game, objects: &[Object], fov_recompute: bool) {

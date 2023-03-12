@@ -20,6 +20,15 @@ pub const INVENTORY_WIDTH: i32 = 50;
 
 pub const HEAL_AMOUNT: i32 = 4;
 
+pub const LIGHTNING_DAMAGE: i32 = 40;
+pub const LIGHTNING_RANGE: i32 = 5;
+
+pub const CONFUSE_RANGE: i32 = 8;
+pub const CONFUSE_NUM_TURNS: i32 = 10;
+
+pub const FIREBALL_RADIUS: i32 = 3;
+pub const FIREBALL_DAMAGE: i32 = 12;
+
 pub const MSG_X: i32 = BAR_WIDTH + 2;
 pub const MSG_WIDTH: i32 = SCREEN_WIDTH - BAR_WIDTH - 2;
 pub const MSG_HEIGHT: usize = PANEL_HEIGHT as usize - 1;

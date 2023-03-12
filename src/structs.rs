@@ -184,6 +184,11 @@ impl Object {
             }
         }
     }
+
+    /// return the distance to some coordinates
+    pub fn distance(&self, x: i32, y: i32) -> f32 {
+        (((x - self.x).pow(2) + (y - self.y).pow(2)) as f32).sqrt()
+    }
 }
 
 // combat-related properties and methods (monster, player, NPC).
@@ -219,6 +224,10 @@ impl Messages {
 #[derive(Clone, Debug, PartialEq)]
 pub enum Ai {
     Basic,
+    Confused {
+        previous_ai: Box<Ai>,
+        num_turns: i32,
+    },
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -231,6 +240,9 @@ pub enum PlayerAction {
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Item {
     Heal,
+    Lightning,
+    Confuse,
+    Fireball,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
